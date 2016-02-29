@@ -1,14 +1,15 @@
 {
-  "name": "pviz",
-  "version": "0.1.6",
+  "name": "sib-pviz",
+  "version": "0.1.7",
   "main": [
-    "dist/pviz-bundle.min.js",
-    "dist/pviz-core.css"
+    "dist/sib-pviz-bundle.min.js",
+    "dist/sib-pviz-core.css"
   ],
-  "homepage": "https://github.com/Genentech/pviz/",
+  "homepage": "https://github.com/vitalit-sib/pviz/",
   "authors": [
     "Alexandre Masselot",
-    "Kiran Mukhyala"
+    "Kiran Mukhyala",
+    "Roman Mylonas"
   ],
   "description": "pViz.js: a dynamic JavaScript & SVG library for visualization of protein sequence features",
   "keywords": [

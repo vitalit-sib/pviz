@@ -98,7 +98,6 @@ define(
                         if (imid < xscales.domain()[0] || imid > xscales.domain()[1]) {
                             gbubbles.style('display', 'none');
                             return;
-
                         }
                         gbubbles.style('display', null);
                         if (self.gPosBubble) {
@@ -237,8 +236,8 @@ define(
 
                 self.p_setup_layer_features();
                 self.p_setup_hidden_layers_container();
-                self.p_setup_groupset_titles()
-                self.render()
+                self.p_setup_groupset_titles();
+                self.render();
 
                 _.each(self.layers, function (layer) {
                     layer.on('change', function () {
@@ -253,7 +252,7 @@ define(
                 var self = this;
 
                 var totTracks = 0;
-                var totHeight = 0
+                var totHeight = 0;
 
                 var previousGroupSet = undefined;
                 var lastGroupSetY = 0;
@@ -573,7 +572,8 @@ define(
                     return viewport.scales.x(i);
                 }).attr('y', viewport.scales.y(1) - 7).style('font-size', '' + viewport.scales.font + 'px').style('letter-spacing', '' + (viewport.scales.x(2) - viewport.scales.x(1) - viewport.scales.font) + 'px')
                 return sel
-            }
+            } 
+            
         });
 
         return SeqEntryAnnotInteractiveView;

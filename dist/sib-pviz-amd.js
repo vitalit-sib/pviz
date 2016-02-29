@@ -1,4 +1,4 @@
-/*! pviz - v0.1.6 - 2015-11-03 */
+/*! sib-pviz - v0.1.7 - 2016-02-29 */
 /**
 	* pViz
 	* Copyright (c) 2013, Genentech Inc.
@@ -82,6 +82,39 @@ define(
                     return self;
                 },
                 /**
+                 * Removes an array or a single feature from the seq entry. A 'change' event will be triggered by default. The Backbone view will be binded to such changes
+                 * @param {Array|Object} feats
+                 * @param {Map} options
+                 * @param {boolean} options.triggerChange defines is a 'change' event is to be fired (default is true)
+                 * @return {SeqEntry}
+                 */
+                removeFeatures: function (feats, options) {
+                    var self = this;
+                    options = options || {};
+
+                    var triggerChange = options.triggerChange || (options.triggerChange === undefined);
+
+					var featureArray = self.get('features');
+                    if (_.isArray(feats)) {
+                        _.each(feats, function (ft) {
+							var index = featureArray.indexOf(ft);
+							if (index !== -1) {
+								featureArray.splice(index, 1);
+							}
+                        })
+                        if (triggerChange)
+                            self.trigger('change');
+                        return self;
+                    }
+					var index = featureArray.indexOf(feats);
+					if (index !== -1) {
+						featureArray.splice(index, 1);
+					}
+                    if (triggerChange)
+                        self.trigger('change');
+                    return self;
+                },
+                /**
                  * Removes all the features (and fire a 'change' event
                  * @return {SeqEntry}
                  */
@@ -94,6 +127,7 @@ define(
             });
         return SeqEntry;
     });
+
 
 define(
     /**
@@ -1316,10 +1350,12 @@ define(
             self.mouseoverCallBacks = {};
             self.mouseoutCallBacks = {};
             self.clickCallBacks = {};
+            self.mousemovementCallBack;
 
             typedDisplayer.init(self);
             self.trackHeightPerCategoryType = {};
             self.strikeoutCategory = {}
+
         }
         /**
          * that's the way to register other manner of displaying info than a mere rectangle
@@ -1411,6 +1447,20 @@ define(
             self.clickCallBacks[type] = fct;
             return self;
         }
+        /**
+         * mousemovement callback
+         * @param {String} type
+         * @param {Function} fct
+         * @return {Array}
+         */
+        FeatureDisplayer.prototype.setMousemovementCallback = function (fct) {
+            var self = this;
+
+            self.mousemovementCallBack = fct;
+
+            return self;
+        }
+
 
         /**
          * Append a list of features into the svg element. This will call the default or the custom handlers.
@@ -1460,6 +1510,11 @@ define(
                 svgGroup.selectAll(".feature.data."+type).style('cursor', 'pointer');
             });
 
+            // set the mousemovement callback
+            Backbone.on("mousemovement", function(coordinates){
+                self.callMousemovementCallBack(coordinates, this);
+            });
+
             return allSel
         };
 
@@ -1497,6 +1552,17 @@ define(
                 self.clickCallBacks[ft.type](ft, el)
             }
         }
+        /**
+         * fire the call back (if any is linked to this feature type)
+         * @param {PositionFeature} ft feature
+         * @param {Array} el
+         */
+        FeatureDisplayer.prototype.callMousemovementCallBack = function (coordinates, el) {
+            var self = this;
+            if (self.mousemovementCallBack!== undefined) {
+                self.mousemovementCallBack(coordinates, el);
+            }
+        };
         /**
          * @private
          * @param viewport
@@ -1780,9 +1846,16 @@ define(
             self.rectLeft = self.svg.append('rect').attr('class', 'brush left').attr('x', 0).attr('y', self.yShift).attr('height', '100%').style('display', 'none')
             self.rectRight = self.svg.append('rect').attr('class', 'brush right').attr('x', 0).attr('y', self.yShift).attr('height', '100%').attr('width', '100%').style('display', 'none')
             self.selectBrush = self.svg.append('g').attr('class','select');
+
             self.svg.on('mousemove', function () {
-                var i = d3.mouse(self.el[0])[0];
-                self.setXBar(self.scales.x.invert(i))
+
+                // trigger the mouse coordinates to make them accesseable to others
+                var coordinates = d3.mouse(self.el[0]);
+                var x = coordinates[0];
+                var y = coordinates[1];
+                Backbone.trigger("mousemovement", coordinates);
+
+                self.setXBar(self.scales.x.invert(x))
                 _.each(options.xChangeCallback, function (f) {
                     if (!f) {
                         return;
@@ -1790,6 +1863,7 @@ define(
                     f(self.scales.x.invert(i - 0.5), self.scales.x.invert(i + 0.5));
                 });
             });
+
             self.svg.on('mouseout', function () {
                 self.xBar.style('display', 'none');
             }).on('mouseover', function () {
@@ -2356,7 +2430,7 @@ define(
     });
 
 
-define('text!pviz_templates/details-pane.html',[],function () { return '<div class="details-pane">\r\n    <div class="" style="width:100%">\r\n        <div class="nav" style="display:none">\r\n            <ul class="nav nav-tabs">\r\n                <li class="pull-right">\r\n                    <label class="checkbox">\r\n                        <input type="checkbox" id="raise-active" checked=checked/>\r\n                        show active pane </label>\r\n                </li>\r\n            </ul>\r\n        </div>\r\n    </div>\r\n    <div class="tab-content">\r\n\r\n    </div>\r\n</div>\r\n';});
+define('text!pviz_templates/details-pane.html',[],function () { return '<div class="details-pane">\n    <div class="" style="width:100%">\n        <div class="nav" style="display:none">\n            <ul class="nav nav-tabs">\n                <li class="pull-right">\n                    <label class="checkbox">\n                        <input type="checkbox" id="raise-active" checked=checked/>\n                        show active pane </label>\n                </li>\n            </ul>\n        </div>\n    </div>\n    <div class="tab-content">\n\n    </div>\n</div>\n';});
 
 define(
     /**
@@ -2481,7 +2555,7 @@ define(
     });
 
 
-define('text!pviz_templates/seq-entry-annot-interactive.html',[],function () { return '<div class=\'seq-entry-annot-interactive\'>\r\n    <div id=\'feature-viewer\'>\r\n        \r\n    </div>\r\n    <div id=\'details-viewer\'>\r\n        \r\n    </div>\r\n    \r\n</div>\r\n';});
+define('text!pviz_templates/seq-entry-annot-interactive.html',[],function () { return '<div class=\'seq-entry-annot-interactive\'>\n    <div id=\'feature-viewer\'>\n        \n    </div>\n    <div id=\'details-viewer\'>\n        \n    </div>\n    \n</div>\n';});
 
 define(
     /**
@@ -2583,7 +2657,6 @@ define(
                         if (imid < xscales.domain()[0] || imid > xscales.domain()[1]) {
                             gbubbles.style('display', 'none');
                             return;
-
                         }
                         gbubbles.style('display', null);
                         if (self.gPosBubble) {
@@ -2722,8 +2795,8 @@ define(
 
                 self.p_setup_layer_features();
                 self.p_setup_hidden_layers_container();
-                self.p_setup_groupset_titles()
-                self.render()
+                self.p_setup_groupset_titles();
+                self.render();
 
                 _.each(self.layers, function (layer) {
                     layer.on('change', function () {
@@ -2738,7 +2811,7 @@ define(
                 var self = this;
 
                 var totTracks = 0;
-                var totHeight = 0
+                var totHeight = 0;
 
                 var previousGroupSet = undefined;
                 var lastGroupSetY = 0;
@@ -2998,10 +3071,12 @@ define(
                     return 'groupset-title-' + (x || '').replace(/\W/g, '_');
                 })
                 if (self.options.collapsible) {
+					var oldGroupSetStatuses = self.groupSetStatuses || {};
                     self.groupSetStatuses = [];
-                    _.each(groupSetNames, function (d, i) {
-                        self.groupSetStatuses[d] = {name:d,open:true};
-                    })
+                    _.each(groupSetNames, function (d) {
+						var isOpen = oldGroupSetStatuses[d] === undefined ? true : oldGroupSetStatuses[d].open;
+                	    self.groupSetStatuses[d] = {name:d,open:isOpen};
+                    });
                     self.collapseIcon = self.gGroupSets
                         .selectAll('polygon')
                         .data(groupSetNames)
@@ -3056,11 +3131,13 @@ define(
                     return viewport.scales.x(i);
                 }).attr('y', viewport.scales.y(1) - 7).style('font-size', '' + viewport.scales.font + 'px').style('letter-spacing', '' + (viewport.scales.x(2) - viewport.scales.x(1) - viewport.scales.font) + 'px')
                 return sel
-            }
+            }, 
+            
         });
 
         return SeqEntryAnnotInteractiveView;
-    });
+    })
+;
 define(/**
      @exports SeqEntryFastaView
      @author Alexandre Masselot

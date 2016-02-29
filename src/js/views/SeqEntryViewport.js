@@ -40,9 +40,16 @@ define(
             self.rectLeft = self.svg.append('rect').attr('class', 'brush left').attr('x', 0).attr('y', self.yShift).attr('height', '100%').style('display', 'none')
             self.rectRight = self.svg.append('rect').attr('class', 'brush right').attr('x', 0).attr('y', self.yShift).attr('height', '100%').attr('width', '100%').style('display', 'none')
             self.selectBrush = self.svg.append('g').attr('class','select');
+
             self.svg.on('mousemove', function () {
-                var i = d3.mouse(self.el[0])[0];
-                self.setXBar(self.scales.x.invert(i))
+
+                // trigger the mouse coordinates to make them accesseable to others
+                var coordinates = d3.mouse(self.el[0]);
+                var x = coordinates[0];
+                var y = coordinates[1];
+                Backbone.trigger("mousemovement", coordinates);
+
+                self.setXBar(self.scales.x.invert(x))
                 _.each(options.xChangeCallback, function (f) {
                     if (!f) {
                         return;
@@ -50,6 +57,7 @@ define(
                     f(self.scales.x.invert(i - 0.5), self.scales.x.invert(i + 0.5));
                 });
             });
+
             self.svg.on('mouseout', function () {
                 self.xBar.style('display', 'none');
             }).on('mouseover', function () {

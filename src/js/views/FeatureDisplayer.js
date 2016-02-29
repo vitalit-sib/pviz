@@ -25,10 +25,12 @@ define(
             self.mouseoverCallBacks = {};
             self.mouseoutCallBacks = {};
             self.clickCallBacks = {};
+            self.mousemovementCallBack;
 
             typedDisplayer.init(self);
             self.trackHeightPerCategoryType = {};
             self.strikeoutCategory = {}
+
         }
         /**
          * that's the way to register other manner of displaying info than a mere rectangle
@@ -120,6 +122,20 @@ define(
             self.clickCallBacks[type] = fct;
             return self;
         }
+        /**
+         * mousemovement callback
+         * @param {String} type
+         * @param {Function} fct
+         * @return {Array}
+         */
+        FeatureDisplayer.prototype.setMousemovementCallback = function (fct) {
+            var self = this;
+
+            self.mousemovementCallBack = fct;
+
+            return self;
+        }
+
 
         /**
          * Append a list of features into the svg element. This will call the default or the custom handlers.
@@ -169,6 +185,11 @@ define(
                 svgGroup.selectAll(".feature.data."+type).style('cursor', 'pointer');
             });
 
+            // set the mousemovement callback
+            Backbone.on("mousemovement", function(coordinates){
+                self.callMousemovementCallBack(coordinates, this);
+            });
+
             return allSel
         };
 
@@ -206,6 +227,17 @@ define(
                 self.clickCallBacks[ft.type](ft, el)
             }
         }
+        /**
+         * fire the call back (if any is linked to this feature type)
+         * @param {PositionFeature} ft feature
+         * @param {Array} el
+         */
+        FeatureDisplayer.prototype.callMousemovementCallBack = function (coordinates, el) {
+            var self = this;
+            if (self.mousemovementCallBack!== undefined) {
+                self.mousemovementCallBack(coordinates, el);
+            }
+        };
         /**
          * @private
          * @param viewport

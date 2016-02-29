@@ -116,13 +116,13 @@ module.exports = function(grunt) {
         },
         copy : {
             dist : {
-                src : ['build/pviz-*.*','src/css/pviz-core.css'],
+                src : ['build/sib-pviz-*.*','src/css/sib-pviz-core.css'],
                 dest : 'dist/',
                 flatten:true,
                 expand:true
             },
             'dist-examples' : {
-                src : ['build/pviz-bundle.min.js','src/css/pviz-core.css', 'bower_components/bootstrap/dist/css/bootstrap*.min.css'],
+                src : ['build/sib-pviz-bundle.min.js','src/css/sib-pviz-core.css', 'bower_components/bootstrap/dist/css/bootstrap*.min.css'],
                 dest : 'examples/deps',
                 flatten:true,
                 expand:true
