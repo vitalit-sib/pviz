@@ -1,6 +1,6 @@
 {
   "name": "sib-pviz",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "main": [
     "dist/sib-pviz-bundle.min.js",
     "dist/sib-pviz-core.css"
