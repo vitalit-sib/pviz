@@ -18667,7 +18667,7 @@ define(
                     return viewport.scales.x(i);
                 }).attr('y', viewport.scales.y(1) - 7).style('font-size', '' + viewport.scales.font + 'px').style('letter-spacing', '' + (viewport.scales.x(2) - viewport.scales.x(1) - viewport.scales.font) + 'px')
                 return sel
-            }, 
+            } 
             
         });
 
