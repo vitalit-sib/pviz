@@ -1,4 +1,4 @@
-/*! sib-pviz - v0.1.8 - 2016-02-29 */
+/*! sib-pviz - v0.1.10 - 2016-03-11 */
 /**
 	* pViz
 	* Copyright (c) 2013, Genentech Inc.
@@ -14341,7 +14341,7 @@ define(
                     if (!f) {
                         return;
                     }
-                    f(self.scales.x.invert(i - 0.5), self.scales.x.invert(i + 0.5));
+                    f(self.scales.x.invert(x - 0.5), self.scales.x.invert(x + 0.5));
                 });
             });
 

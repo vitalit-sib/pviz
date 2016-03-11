@@ -54,7 +54,7 @@ define(
                     if (!f) {
                         return;
                     }
-                    f(self.scales.x.invert(i - 0.5), self.scales.x.invert(i + 0.5));
+                    f(self.scales.x.invert(x - 0.5), self.scales.x.invert(x + 0.5));
                 });
             });
 
