@@ -1,4 +1,4 @@
-/*! sib-pviz - v0.1.10 - 2016-03-11 */
+/*! sib-pviz - v0.1.11 - 2016-10-31 */
 /**
 	* pViz
 	* Copyright (c) 2013, Genentech Inc.
@@ -18129,7 +18129,6 @@ define(
             initialize: function (options) {
                 var self = this;
                 self.options = options;
-
                 self.margins = {
                     left: options.marginLeft || 20,
                     right: options.marginRight || 20,
@@ -18371,7 +18370,7 @@ define(
                             if (self.options.collapsible) {
                                 self.gGroupSets.select('polygon#groupset-collapser-' + cgsId).attr('transform', function(d,i) { return 'translate(12, ' + (self.viewport.scales.y(totTracks) + totHeight + yshiftScale - self.collapserSize / 2) + ') rotate(' + (self.groupSetStatuses[d].open ? '0' : '-90') + ')'; })
                             }
-                            lastGroupSet = self.groupSetBackgroundGroup.select('g>rect.groupset-background' + (cgsId === '' ? '' : '.'+cgsId)).attr('y', groupSetY);
+                            lastGroupSet = self.groupSetBackgroundGroup.select('g>rect.groupset-background' + (cgsId === '' ? '' : '.A'+cgsId)).attr('y', groupSetY);
                             lastGroupSetY = groupSetY;
                             paddingGroupSetAdded = false;
                         }
@@ -18493,7 +18492,7 @@ define(
                 };
                 var categoryOrder = buildOrder('categoryOrder');
                 var groupSetOrder = buildOrder('groupSetOrder');
-
+                
 
                 var saveGroupSet = '';
                 _.chain(groupedFeatures)
@@ -18598,7 +18597,7 @@ define(
                     .attr('width', '100%')
                     .attr('height',0)
                     .attr('class', function (x) {
-                        return 'groupset-background ' + (x || '').replace(/\W/g, '_');
+                        return 'groupset-background ' + 'A' + (x || '').replace(/\W/g, '_');
                     })
                 ;
                 self.gGroupSets.selectAll('text').data(groupSetNames).enter().append('text').text(function (x) {

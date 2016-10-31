@@ -58,6 +58,7 @@
           var seqEntryAnnotInteractiveView = new pviz.SeqEntryAnnotInteractiveView({
             model : seqEntry,
             paddingGroupSet: 1, // <- vertical separation between groupset header and first category
+            groupSetOrder:['lambda', 'kappa'],
             selectCallback : function(data) {
             	var types = '';
             	for (var i = 0; i < data.length; i++) {
