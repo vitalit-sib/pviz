@@ -209,8 +209,8 @@ define(
                 var self = this;
 
                 var vpXScale = self.viewport.scales.x;
-                var scale = d3.scale.linear().domain([vpXScale.domain()[0] + 1, vpXScale.domain()[1] + 1]).range(vpXScale.range());
-                var xAxis = d3.svg.axis().scale(scale).tickSize(6, 5, 5).tickFormat(function (p) {
+                var scale = d3.scaleLinear().domain([vpXScale.domain()[0] + 1, vpXScale.domain()[1] + 1]).range(vpXScale.range());
+                var xAxis = d3.axisBottom(scale).tickSize(6, 5, 5).tickFormat(function (p) {
                     return (p == 0) ? '' : p
                 }).ticks(4);
                 self.axisContainer.call(xAxis);

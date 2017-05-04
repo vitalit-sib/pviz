@@ -3,6 +3,7 @@ define(
      @exports FeatureDisplayer
      @author Alexandre Masselot
      @author Kiran Mukhyala
+     @author Roman Mylonas
      @copyright 2013,  Bioinformatics & Computational Biology Department, Genentech Inc.
      */
 
@@ -312,8 +313,10 @@ define(
          */
         // FeatureDisplayer.prototype.position = function(viewport, d3selection) {
         var defaultPositioner = function (viewport, d3selection) {
+            console.log('defaultPositioner');
+            console.log(d3selection['_groups']);
             var oneOffAdjust = viewport.oneOffFix ? -1 : 0;
-            var hFactor = singleton.heightFactor(d3selection[0][0].__data__.category);
+            var hFactor = singleton.heightFactor(d3selection['_groups'][0][0].__data__.category);
             // var yscale=singleton.trackHeightFactorPerCategory[]
 
             d3selection.attr('transform', function (ft) {

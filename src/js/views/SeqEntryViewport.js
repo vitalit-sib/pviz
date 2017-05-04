@@ -20,6 +20,8 @@ define(
             var self = this;
             self.options = options;
 
+            console.log('SeqEntryViewport');
+
             self.margins = _.extend({
                 left: 0,
                 right: 0,
@@ -39,7 +41,7 @@ define(
 
             self.rectLeft = self.svg.append('rect').attr('class', 'brush left').attr('x', 0).attr('y', self.yShift).attr('height', '100%').style('display', 'none')
             self.rectRight = self.svg.append('rect').attr('class', 'brush right').attr('x', 0).attr('y', self.yShift).attr('height', '100%').attr('width', '100%').style('display', 'none')
-            self.selectBrush = self.svg.append('g').attr('class','select');
+            //self.selectBrush = self.svg.append('g').attr('class','select');
 
             self.svg.on('mousemove', function () {
 
@@ -63,8 +65,9 @@ define(
             }).on('mouseover', function () {
                 self.xBar.style('display', null);
             })
+
             initBrush(self);
-            self.setMode('zoom');
+            //self.setMode('zoom');
         }
 
         /**
@@ -72,16 +75,30 @@ define(
          * @param self
          */
         function initBrush(self) {
-            self.brush = d3.svg.brush().on("brushend", brushMode);
+            console.log('initBrush');
+            self.brush = d3.brushX().on("end", brushModeX);
             self.selectBrush.call(self.brush);
 
             self.brush.on('brush', function () {
-                if (self.mode === 'zoom') {
-                    self.setRect(self.brush.extent());
-                }
+
+                console.log(d3.brushSelection(self.brush.node()));
+            //     console.log('brush.on');
+            //     console.log(self.brush.extent());
+            //     if (self.mode === 'zoom') {
+            //         console.log('brush.on and zoom');
+            //         console.log(self.brush.extent());
+            //         //self.setRect(self.brush.extent()());
+            //     }
             })
-            self.brush(self.bgRect);
+            //self.brush(self.bgRect);
+
+            function brushModeX(){
+                console.log('brushModeX');
+            }
+
+
             function brushMode() {
+                console.log('brushMode')
                 if (self.mode === 'zoom') {
                     brushZoom();
                 }
@@ -110,7 +127,7 @@ define(
 
             function brushSelect() {
                 var selectedFeatures = self.selectFeatures(self.brush.extent());
-                self.selectBrush.call(self.brush.clear());
+                self.selectBrush.call(self.brush.move(null));
                 if (self.selectCallback) {
                     self.selectCallback(selectedFeatures);
                 }
@@ -147,8 +164,8 @@ define(
         SeqEntryViewport.prototype.resizeBrush = function () {
             var self = this;
             if (self.mode === 'select') {
-                self.brush.x(d3.scale.identity().domain([0,self.svg.node().getBoundingClientRect().right]));
-                self.brush.y(d3.scale.identity().domain([0,self.svg.node().getBoundingClientRect().bottom]));
+                d3.brushX(d3.scale.identity().domain([0,self.svg.node().getBoundingClientRect().right]));
+                d3.brushY(d3.scale.identity().domain([0,self.svg.node().getBoundingClientRect().bottom]));
             }
         };
         /**
@@ -160,20 +177,23 @@ define(
             self.mode = mode;
             if (mode === 'zoom') {
                 self.bgRect.style('pointer-events',null);
-                self.brush.x(self.scales.x);
-                self.brush.y(null);
+                d3.brushX(self.scales.x);
+                d3.brushY(null);
                 if (self.selectBrush) {
+                    console.log('self.selectBrush');
                     self.selectBrush.style('display', 'none');
                 }
                 self.bgRect.style('cursor', 'col-resize');
-                self.selectBrush.call(self.brush.clear());
+                console.log('setMode');
+                console.log(self.selectBrush);
+                //self.selectBrush.call(self.brush.move(self.selectBrush['_groups'], null));
             }
             else if (mode === 'select') {
                 self.bgRect.style('pointer-events',null);
                 self.resizeBrush();
                 self.selectBrush.style('display', null);
                 self.bgRect.style('cursor', 'crosshair');
-                self.selectBrush.call(self.brush.clear());
+                self.selectBrush.call(self.brush.move(null));
             }
             else {
                 self.bgRect.style('pointer-events','none');
@@ -206,6 +226,8 @@ define(
          */
         SeqEntryViewport.prototype.setRect = function (xs) {
             var self = this;
+            console.log('setRect');
+            console.log(xs[0]);
             self.rectLeft.attr('width', self.scales.x(xs[0])).style('display', null)
             self.rectRight.attr('x', self.scales.x(xs[1])).style('display', null)
 
@@ -279,6 +301,7 @@ define(
          */
         SeqEntryViewport.prototype.computeScaling = function (options) {
             var self = this;
+
             if (options == undefined) {
                 options = {};
             }
@@ -289,12 +312,11 @@ define(
             if (self.scales == undefined)
                 self.scales = {};
             if (self.scales.x == undefined) {
-                self.scales.x = d3.scale.linear().domain([xMin, xMax]).range([self.margins.left, self.dim.width - self.margins.right])
-                console.log()
+                self.scales.x = d3.scaleLinear().domain([xMin, xMax]).range([self.margins.left, self.dim.width - self.margins.right])
             } else {
                 self.scales.x.domain([xMin, xMax]);
             }
-            self.scales.y = d3.scale.linear().domain([0, 100]).range([0, lineHeight * 100]);
+            self.scales.y = d3.scaleLinear().domain([0, 100]).range([0, lineHeight * 100]);
             self.scales.pxPerUnit = self.dim.width / (2 + self.length );
             self.scales.font = Math.min(0.9 * self.dim.width / (xMax - xMin), 20);
         };

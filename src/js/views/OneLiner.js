@@ -44,7 +44,7 @@ define(
              */
             xscale: function () {
                 var self = this;
-                return d3.scale.linear().domain([0, self.model.length()]).range([0, $(self.el).width()])
+                return d3.scaleLinear().domain([0, self.model.length()]).range([0, $(self.el).width()])
             },
             /**
              * @private
