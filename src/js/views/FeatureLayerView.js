@@ -138,6 +138,7 @@ define(
                 if (_this.model.get('isPlot')) {
                     return featureDisplayer.getCategoryPlot(this.model.get('category')).height;
                 }
+
                 return this.model.get('nbTracks') * featureDisplayer.heightFactor(this.model.attributes);
 
             }

@@ -117,6 +117,11 @@ g.one-hidden-layer text {
 /*
  * axis
  */
+g.axis {
+    fill: black;
+    font-size: 14;
+}
+
 g.axis g.tick line {
     stroke: black;
 }
@@ -210,10 +215,12 @@ line.category-separator-line {
 /** select
  *
  */
-g.select {
-     fill:7f7f7f;
-     fill-opacity:0.3;
+g.select rect.selection {
+     fill: #dddddd;
+     fill-opacity: 0;
+     stroke-opacity: 0;
  }
+
 g.feature.data > .feature.selected {
     stroke: none;
     color: #3FFFFF;

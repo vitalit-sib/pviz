@@ -68,7 +68,7 @@ define(
                     details: el.find('#details-viewer')
                 }
 
-                self.svg = d3.select(self.components.features[0]).append("svg").attr("width", '100%').attr("height", '123').attr('class', 'pviz');
+                self.svg = d3.select(self.components.features[0]).append("svg").attr("width", '100%').attr("height", '100%').attr('class', 'pviz');
                 self.p_setup_defs();
 
                 var rectBg = self.svg.insert("rect").attr("class", 'background').attr('width', '100%').attr('height', '100%');
@@ -318,7 +318,11 @@ define(
                     heightAdd += 25;
                 }
 
-                self.svg.attr("height", self.viewport.scales.y(totTracks) + totHeight + heightAdd)
+                // adapt the height of the svg and the brush area
+                var svgTotHeight = self.viewport.scales.y(totTracks) + totHeight + heightAdd;
+//                self.viewport.svg.attr('height', svgTotHeight);
+                self.svg.attr("height", svgTotHeight);
+                self.viewport.initBrush();
             },
             /**
              * define gradients to be used.

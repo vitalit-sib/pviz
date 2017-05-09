@@ -1,4 +1,4 @@
-/*! sib-pviz - v0.1.11 - 2017-05-08 */
+/*! sib-pviz - v0.1.11 - 2017-05-03 */
 /**
 	* pViz
 	* Copyright (c) 2013, Genentech Inc.
@@ -1328,7 +1328,6 @@ define(
      @exports FeatureDisplayer
      @author Alexandre Masselot
      @author Kiran Mukhyala
-     @author Roman Mylonas
      @copyright 2013,  Bioinformatics & Computational Biology Department, Genentech Inc.
      */
 
@@ -1639,7 +1638,7 @@ define(
         // FeatureDisplayer.prototype.position = function(viewport, d3selection) {
         var defaultPositioner = function (viewport, d3selection) {
             var oneOffAdjust = viewport.oneOffFix ? -1 : 0;
-            var hFactor = singleton.heightFactor(d3selection['_groups'][0][0].__data__.category);
+            var hFactor = singleton.heightFactor(d3selection[0][0].__data__.category);
             // var yscale=singleton.trackHeightFactorPerCategory[]
 
             d3selection.attr('transform', function (ft) {
@@ -1870,8 +1869,7 @@ define(
             }).on('mouseover', function () {
                 self.xBar.style('display', null);
             })
-
-            self.initBrush();
+            initBrush(self);
             self.setMode('zoom');
         }
 
@@ -1879,71 +1877,84 @@ define(
          * @private
          * @param self
          */
-        SeqEntryViewport.prototype.initBrush = function() {
-            var self = this;
-            self.brush = d3.brushX();
+        function initBrush(self) {
+            self.brush = d3.svg.brush().on("brushend", brushMode);
             self.selectBrush.call(self.brush);
 
-            self.brush.on("end", brushMode);
-
             self.brush.on('brush', function () {
-                var selRange = d3.brushSelection(self.selectBrush.node());
-                if(selRange){
-                    self.setRect(selRange);
+                if (self.mode === 'zoom') {
+                    self.setRect(self.brush.extent());
                 }
             })
-
+            self.brush(self.bgRect);
             function brushMode() {
                 if (self.mode === 'zoom') {
-                    if(self.clearBrush){
-                        self.clearBrush = false;
-                    }else{
-                        brushZoom();
-                    }
+                    brushZoom();
                 }
                 if (self.mode === 'select') {
-                    console.log('Sorry, but the select mode was disabled on version 2.0');
+                    brushSelect();
                 }
             }
 
             function brushZoom() {
                 self.rectClear()
-                var pixBounds = d3.brushSelection(self.selectBrush.node());
-        
-                if(pixBounds){
-                    var bounds = pixBounds.map(self.scales.x.invert);
-
-                    if (bounds[0] < 0) {
-                        bounds[0] = 0;
-                    }
-                    if (bounds[1] > self.length - 1) {
-                        bounds[1] = self.length - 1;
-                    } else {
-                        self.scales.x.domain([Math.floor(bounds[0]), Math.ceil(bounds[1])]);
-                    }
-                }else{
-                    self.scales.x.domain([0, self.length - 1]);
+                var bounds = self.brush.extent();
+                if (bounds[0] < 0) {
+                    bounds[0] = 0;
                 }
-
+                if (bounds[1] > self.length - 1) {
+                    bounds[1] = self.length - 1;
+                }
+                if (bounds[1] < bounds[0] + 0.3) {
+                    self.scales.x.domain([0, self.length - 1]);
+                } else {
+                    self.scales.x.domain([Math.floor(bounds[0]), Math.ceil(bounds[1])]);
+                }
                 self.change();
                 self.setXBar(self.scales.x.invert(d3.mouse(self.el[0])[0]));
-
-                self.clearBrush = true;
-                self.brush.move(self.selectBrush, null);
             }
 
+            function brushSelect() {
+                var selectedFeatures = self.selectFeatures(self.brush.extent());
+                self.selectBrush.call(self.brush.clear());
+                if (self.selectCallback) {
+                    self.selectCallback(selectedFeatures);
+                }
+            }
         };
 
+        /**
+         * @private
+         * @param extent
+         * select the features given the xtent of the select rectangle
+         */
+        SeqEntryViewport.prototype.selectFeatures = function (extent) {
+            var self = this;
+            var bgRectBoundgingRect = self.bgRect.node().getBoundingClientRect();
+            selectedFeatures = [];
+            var xMin = extent ? bgRectBoundgingRect.left + extent[0][0] : -1;
+            var xMax = extent ? bgRectBoundgingRect.left + extent[1][0] : -1;
+            var yMin = extent ? bgRectBoundgingRect.top + extent[0][1] : -1;
+            var yMax = extent ? bgRectBoundgingRect.top + extent[1][1] : -1;
+            _.each(d3.selectAll(':not(g).feature.selectable')[0], function (elem) {
+                var bbox = elem.getBoundingClientRect();
+                var isInside = bbox.left + bbox.width >= xMin && bbox.top + bbox.height >= yMin && bbox.left <= xMax && bbox.top <= yMax;
+                if (isInside) {
+                    selectedFeatures.push(d3.select(elem).data()[0]);
+                }
+                d3.select(elem).classed('selected',isInside);
+            });
+            return selectedFeatures;
+        };
         /**
          * called for window resize
          * @private
          */
         SeqEntryViewport.prototype.resizeBrush = function () {
             var self = this;
-
             if (self.mode === 'select') {
-                d3.brushX(d3.scale.identity().domain([0,self.svg.node().getBoundingClientRect().right]));
-                d3.brushY(d3.scale.identity().domain([0,self.svg.node().getBoundingClientRect().bottom]));
+                self.brush.x(d3.scale.identity().domain([0,self.svg.node().getBoundingClientRect().right]));
+                self.brush.y(d3.scale.identity().domain([0,self.svg.node().getBoundingClientRect().bottom]));
             }
         };
         /**
@@ -1955,10 +1966,20 @@ define(
             self.mode = mode;
             if (mode === 'zoom') {
                 self.bgRect.style('pointer-events',null);
-                self.bgRect.style('cursor', 'col-resize')
+                self.brush.x(self.scales.x);
+                self.brush.y(null);
+                if (self.selectBrush) {
+                    self.selectBrush.style('display', 'none');
+                }
+                self.bgRect.style('cursor', 'col-resize');
+                self.selectBrush.call(self.brush.clear());
             }
             else if (mode === 'select') {
-                console.log('Sorry, but the select mode was disabled on version 2.0');
+                self.bgRect.style('pointer-events',null);
+                self.resizeBrush();
+                self.selectBrush.style('display', null);
+                self.bgRect.style('cursor', 'crosshair');
+                self.selectBrush.call(self.brush.clear());
             }
             else {
                 self.bgRect.style('pointer-events','none');
@@ -1991,8 +2012,8 @@ define(
          */
         SeqEntryViewport.prototype.setRect = function (xs) {
             var self = this;
-            self.rectLeft.attr('width', (xs[0])).style('display', null)
-            self.rectRight.attr('x', (xs[1])).style('display', null)
+            self.rectLeft.attr('width', self.scales.x(xs[0])).style('display', null)
+            self.rectRight.attr('x', self.scales.x(xs[1])).style('display', null)
 
         };
         /**
@@ -2000,7 +2021,14 @@ define(
          */
         SeqEntryViewport.prototype.change = function () {
             var self = this;
-
+            //xMax-xMin check makes sure we don't zoom to regions smaller than 4 AA
+            //undefined check for zoomout
+            // if (xMax - xMin > 3 || xMin == undefined) {
+            // self.computeScaling({
+            // xMin : xMin,
+            // xMax : xMax
+            // });
+            // }
             var domain = self.scales.x.domain();
             if (domain[0] < 1)
                 domain[0] = 0;
@@ -2013,10 +2041,17 @@ define(
                 domain[1] += d;
             }
 
+            //console.log('b', domain)
+
+            //console.log('c', domain)
+
+            //self.scales.x.domain(domain)
+            //console.log('d', self.scales.x.domain())
             self.scales.pxPerUnit = self.dim.width / (2 + self.length );
             self.scales.font = Math.min(0.9 * self.dim.width / (domain[1] - domain[0]), 20);
 
             self.changeCallback(self);
+            //console.log('e', self.scales.x.domain())
 
         };
         /**
@@ -2050,7 +2085,6 @@ define(
          */
         SeqEntryViewport.prototype.computeScaling = function (options) {
             var self = this;
-
             if (options == undefined) {
                 options = {};
             }
@@ -2061,11 +2095,12 @@ define(
             if (self.scales == undefined)
                 self.scales = {};
             if (self.scales.x == undefined) {
-                self.scales.x = d3.scaleLinear().domain([xMin, xMax]).range([self.margins.left, self.dim.width - self.margins.right])
+                self.scales.x = d3.scale.linear().domain([xMin, xMax]).range([self.margins.left, self.dim.width - self.margins.right])
+                console.log()
             } else {
                 self.scales.x.domain([xMin, xMax]);
             }
-            self.scales.y = d3.scaleLinear().domain([0, 100]).range([0, lineHeight * 100]);
+            self.scales.y = d3.scale.linear().domain([0, 100]).range([0, lineHeight * 100]);
             self.scales.pxPerUnit = self.dim.width / (2 + self.length );
             self.scales.font = Math.min(0.9 * self.dim.width / (xMax - xMin), 20);
         };
@@ -2081,7 +2116,6 @@ define(
             self.setXBar(0);
             self.selectFeatures();
         };
-
         return SeqEntryViewport;
 
     });
@@ -2265,9 +2299,11 @@ define(
             height: function () {
                 var _this = this;
                 if (_this.model.get('isPlot')) {
+                    console.log('in isPlot');
+                    console.log(featureDisplayer.getCategoryPlot(this.model.get('category')).height);
                     return featureDisplayer.getCategoryPlot(this.model.get('category')).height;
                 }
-
+                console.log(this.model.get('nbTracks') * featureDisplayer.heightFactor(this.model.attributes));
                 return this.model.get('nbTracks') * featureDisplayer.heightFactor(this.model.attributes);
 
             }
@@ -2594,7 +2630,7 @@ define(
                     details: el.find('#details-viewer')
                 }
 
-                self.svg = d3.select(self.components.features[0]).append("svg").attr("width", '100%').attr("height", '100%').attr('class', 'pviz');
+                self.svg = d3.select(self.components.features[0]).append("svg").attr("width", '100%').attr("height", '123').attr('class', 'pviz');
                 self.p_setup_defs();
 
                 var rectBg = self.svg.insert("rect").attr("class", 'background').attr('width', '100%').attr('height', '100%');
@@ -2735,8 +2771,8 @@ define(
                 var self = this;
 
                 var vpXScale = self.viewport.scales.x;
-                var scale = d3.scaleLinear().domain([vpXScale.domain()[0] + 1, vpXScale.domain()[1] + 1]).range(vpXScale.range());
-                var xAxis = d3.axisBottom(scale).tickSize(6, 5, 5).tickFormat(function (p) {
+                var scale = d3.scale.linear().domain([vpXScale.domain()[0] + 1, vpXScale.domain()[1] + 1]).range(vpXScale.range());
+                var xAxis = d3.svg.axis().scale(scale).tickSize(6, 5, 5).tickFormat(function (p) {
                     return (p == 0) ? '' : p
                 }).ticks(4);
                 self.axisContainer.call(xAxis);
@@ -2844,11 +2880,7 @@ define(
                     heightAdd += 25;
                 }
 
-                // adapt the height of the svg and the brush area
-                var svgTotHeight = self.viewport.scales.y(totTracks) + totHeight + heightAdd;
-//                self.viewport.svg.attr('height', svgTotHeight);
-                self.svg.attr("height", svgTotHeight);
-                self.viewport.initBrush();
+                self.svg.attr("height", self.viewport.scales.y(totTracks) + totHeight + heightAdd)
             },
             /**
              * define gradients to be used.
@@ -3192,7 +3224,7 @@ define(
              */
             xscale: function () {
                 var self = this;
-                return d3.scaleLinear().domain([0, self.model.length()]).range([0, $(self.el).width()])
+                return d3.scale.linear().domain([0, self.model.length()]).range([0, $(self.el).width()])
             },
             /**
              * @private
