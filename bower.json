@@ -1,15 +1,15 @@
 {
   "name": "sib-pviz",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "main": [
     "dist/sib-pviz-bundle.js",
     "dist/sib-pviz-core.css"
   ],
   "homepage": "https://github.com/vitalit-sib/pviz/",
   "authors": [
+    "Roman Mylonas",
     "Alexandre Masselot",
-    "Kiran Mukhyala",
-    "Roman Mylonas"
+    "Kiran Mukhyala"
   ],
   "description": "pViz.js: a dynamic JavaScript & SVG library for visualization of protein sequence features",
   "keywords": [
@@ -29,7 +29,7 @@
   ],
   "devDependencies": {
     "jquery": "~1.9",
-    "lodash": ">=3.10.1",
+    "underscore-amd": "1.4.4",
     "bootstrap": ">=3.2.0",
     "backbone-amd": "1.0.0",
     "d3": "~4.x.x",

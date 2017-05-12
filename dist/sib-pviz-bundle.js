@@ -1,4 +1,4 @@
-/*! sib-pviz - v0.1.11 - 2017-05-09 */
+/*! sib-pviz - v2.0.3 - 2017-05-12 */
 /**
 	* pViz
 	* Copyright (c) 2013, Genentech Inc.
@@ -14096,9 +14096,10 @@ define(
          */
         FeatureDisplayer.prototype.heightFactor = function (o) {
             if (o instanceof Object) {
-                return this.heightFactor(o.type || o.name)
+                return this.heightFactor(o.type || o.name);
             }
-            return this.trackHeightPerCategoryType[o] || 1
+            console.log(this.trackHeightPerCategoryType);
+            return this.trackHeightPerCategoryType[o] || 1;
         }
         /**
          * You can register a catgory to have a strikeout line.
