@@ -14096,10 +14096,9 @@ define(
          */
         FeatureDisplayer.prototype.heightFactor = function (o) {
             if (o instanceof Object) {
-                return this.heightFactor(o.type || o.name);
+                return this.heightFactor(o.type || o.name)
             }
-            console.log(this.trackHeightPerCategoryType);
-            return this.trackHeightPerCategoryType[o] || 1;
+            return this.trackHeightPerCategoryType[o] || 1
         }
         /**
          * You can register a catgory to have a strikeout line.
