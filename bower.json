@@ -1,6 +1,6 @@
 {
   "name": "sib-pviz",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "main": [
     "dist/sib-pviz-bundle.js",
     "dist/sib-pviz-core.css"
@@ -29,7 +29,7 @@
   ],
   "devDependencies": {
     "jquery": "~1.9",
-    "underscore-amd": "1.4.4",
+    "lodash": ">=3.10.1",
     "bootstrap": ">=3.2.0",
     "backbone-amd": "1.0.0",
     "d3": "~4.x.x",
