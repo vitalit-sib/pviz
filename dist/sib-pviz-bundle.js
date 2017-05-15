@@ -1,4 +1,4 @@
-/*! sib-pviz - v2.0.3 - 2017-05-12 */
+/*! sib-pviz - v2.0.4 - 2017-05-15 */
 /**
 	* pViz
 	* Copyright (c) 2013, Genentech Inc.
